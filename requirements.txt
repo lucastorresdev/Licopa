@@ -1,4 +1,5 @@
-Flask==2.2.5
+fastapi
+uvicorn
+python-multipart
 pillow
 pytesseract
-werkzeug

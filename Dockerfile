@@ -1,18 +1,19 @@
+# Imagen base de Python
 FROM python:3.11-slim
 
-# instalar dependencias del sistema (tesseract)
-RUN apt-get update && apt-get install -y \
-    tesseract-ocr \
-    tesseract-ocr-spa \
-    libglib2.0-0 \
-    && rm -rf /var/lib/apt/lists/*
-
+# Crear directorio de trabajo
 WORKDIR /app
+
+# Copiar requirements e instalarlos
 COPY requirements.txt .
+
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copiar el resto del proyecto
 COPY . .
 
-ENV PORT=8080
-EXPOSE 8080
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "app:app", "--workers=1", "--threads=4"]
+# Exponer el puerto del servidor
+EXPOSE 8000
+
+# Comando para correr la app
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
