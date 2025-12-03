@@ -3,3 +3,5 @@ uvicorn==0.29.0
 paddlepaddle==3.2.2
 paddleocr==2.7.0.2
 Pillow
+# Usar versión más reciente de PyMuPDF que viene precompilada
+PyMuPDF>=1.23.0
