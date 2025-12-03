@@ -1,22 +1,27 @@
 # ocr.py
-import easyocr
+from paddleocr import PaddleOCR
 import re
 
-# Inicializamos EasyOCR solo una vez (usa español)
-reader = easyocr.Reader(['es'], gpu=False)
-
+# Inicializamos PaddleOCR (solo español)
+ocr = PaddleOCR(use_angle_cls=True, lang='spanish')
 
 def leer_texto(ruta_imagen):
     """
-    Devuelve el texto detectado en la imagen como lista de líneas.
+    Devuelve lista de líneas de texto detectado.
     """
-    resultado = reader.readtext(ruta_imagen, detail=0)
-    # detail=0 devuelve directamente el texto
-    lines = [ln.strip() for ln in resultado if ln.strip()]
+    resultado = ocr.ocr(ruta_imagen, cls=True)
+    lines = []
+
+    for block in resultado:
+        for line in block:
+            txt = line[1][0].strip()
+            if txt:
+                lines.append(txt)
+
     return lines
 
 
-# --- Extractores (tus mismos regex) ---
+# --- Regex existentes ---
 RE_DATE = re.compile(r"(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})")
 RE_CUIT = re.compile(r"(\d{2}\-?\d{8}\-?\d|\d{11})")
 RE_AMOUNT = re.compile(r"(?:(?:\$|ARS)?\s?)(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})?)")
@@ -45,8 +50,8 @@ def extraer_campos(texto, campos_a_buscar):
         m = RE_CUIT.search(texto_str)
         if m:
             c = m.group(1)
-            if len(re.sub(r"\D","",c)) == 11:
-                nums = re.sub(r"\D","",c)
+            nums = re.sub(r"\D", "", c)
+            if len(nums) == 11:
                 c = f"{nums[:2]}-{nums[2:10]}-{nums[10]}"
             resultado["cuit"] = c
         else:
@@ -56,7 +61,8 @@ def extraer_campos(texto, campos_a_buscar):
         matches = RE_AMOUNT.findall(texto_str)
         if matches:
             raw = matches[-1]
-            normalized = raw.replace(".", "").replace(",", ".") if raw.count(",") == 1 and raw.count(".") <= 1 else raw.replace(",", "")
+            normalized = raw.replace(".", "").replace(",", ".") \
+                if raw.count(",") == 1 and raw.count(".") <= 1 else raw.replace(",", "")
             resultado["monto"] = normalized
         else:
             resultado["monto"] = None
