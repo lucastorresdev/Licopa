@@ -1,26 +1,26 @@
 # ocr.py
-from PIL import Image
-import pytesseract
+import easyocr
 import re
 
-pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+# Inicializamos EasyOCR solo una vez (usa español)
+reader = easyocr.Reader(['es'], gpu=False)
 
 
 def leer_texto(ruta_imagen):
     """
     Devuelve el texto detectado en la imagen como lista de líneas.
     """
-    # Abrimos la imagen con PIL
-    img = Image.open(ruta_imagen)
-    texto = pytesseract.image_to_string(img, lang='spa')  # idioma español
-    # Devolvemos como lista de líneas (imitando easyocr)
-    lines = [ln.strip() for ln in texto.splitlines() if ln.strip()]
+    resultado = reader.readtext(ruta_imagen, detail=0)
+    # detail=0 devuelve directamente el texto
+    lines = [ln.strip() for ln in resultado if ln.strip()]
     return lines
 
-# --- Extractors (mismos que tenías, adaptados) ---
+
+# --- Extractores (tus mismos regex) ---
 RE_DATE = re.compile(r"(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})")
 RE_CUIT = re.compile(r"(\d{2}\-?\d{8}\-?\d|\d{11})")
 RE_AMOUNT = re.compile(r"(?:(?:\$|ARS)?\s?)(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})?)")
+
 
 def guess_name(lines):
     texto_str = "\n".join(lines) if isinstance(lines, list) else str(lines)
@@ -31,6 +31,7 @@ def guess_name(lines):
                 continue
             return ln.strip()
     return None
+
 
 def extraer_campos(texto, campos_a_buscar):
     resultado = {}

@@ -65,7 +65,12 @@ async def upload(
             shutil.copyfileobj(file.file, buffer)
 
         # Aplicar OCR -> devuelve lista de líneas (o texto plano)
-        texto_list = leer_texto(file_path)
+        try:
+            texto_list = leer_texto(file_path)
+        except Exception as e:
+            texto_list = []
+            print("Error OCR:", e)
+
         # Convertir lista a texto continuo para búsquedas
         texto_plano = "\n".join(texto_list) if isinstance(texto_list, list) else str(texto_list)
 
